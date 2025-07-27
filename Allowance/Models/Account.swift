@@ -11,7 +11,7 @@ import SwiftData
 @Model
 class Account {
     var name: String
-    var balance: Double
+    var balance: Double // Assume this is initial balance
     var creationDate: Date
     var transactions: [Transaction] = []
     
@@ -21,13 +21,20 @@ class Account {
         self.creationDate = date
     }
     
-    var totalBalance: Double {
-        var total = 0.0
-        
-        for transaction in transactions {
-            total += transaction.amount
+    var totalTransactions: Double {
+        transactions.reduce(0.0) { result, transaction in
+            switch transaction.transactionType {
+            case .Income:
+                return result + transaction.amount
+            case .Expense:
+                return result - transaction.amount
+            case .Transfer:
+                return result // Adjust logic if needed
+            }
         }
-        
-        return total
+    }
+    
+    var netBalance: Double {
+        return balance + totalTransactions
     }
 }

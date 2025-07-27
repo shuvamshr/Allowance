@@ -24,7 +24,7 @@ struct AccountView: View {
                             Text(account.name)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
-                            Text("$" + String(account.balance))
+                            Text("$" + String(account.netBalance))
                                 .font(.title2)
                             
                         }
