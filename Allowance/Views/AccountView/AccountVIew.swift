@@ -43,7 +43,7 @@ struct AccountView: View {
                     .padding(.horizontal, 4)
                 }
             }
-            .navigationTitle("My Accounts")
+            .navigationTitle("Accounts")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add Wallet", systemImage: "plus") {

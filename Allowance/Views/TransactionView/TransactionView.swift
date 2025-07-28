@@ -22,26 +22,21 @@ struct TransactionView: View {
                         VStack(alignment: .leading) {
                             Text(transaction.notes)
                                 .font(.headline)
-                            Text(transaction.sourceAccount.name)
+                            Text(transaction.account.name)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        if transaction.transactionType == .Expense {
-                            Text("- $" + String(transaction.amount))
+                       
+                        Text("\(transaction.amount, format: .currency(code: "AUD"))")
                                 .foregroundStyle(Color.red)
-                        } else if transaction.transactionType == .Income {
-                            Text("+ $" + String(transaction.amount))
-                                .foregroundStyle(Color.green)
-                        } else {
-                            Text("$" + String(transaction.amount))
-                                .foregroundStyle(Color.primary)
-                        }
+                        
+                           
+                       
                     }
                 }
             }
             .navigationTitle("Transactions")
-          
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add New Transaction", systemImage: "plus") {

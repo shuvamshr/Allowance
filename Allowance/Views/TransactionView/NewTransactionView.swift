@@ -8,108 +8,161 @@
 import SwiftData
 import SwiftUI
 
-
 struct NewTransactionView: View {
-    
-    @Query(sort: \Account.name) private var accounts: [Account] = []
-    
+    @Query(sort: \Account.name) private var accounts: [Account]
+
     @State private var notes: String = ""
     @State private var amount: String = ""
     @State private var transactionType: TransactionType = .Expense
     @State private var transactionDate: Date = .now
-    @State private var sourceAccount: Account?
-    @State private var destinationAccount: Account?
-    
-    @State private var isValidTransactionAmount: Bool = true
-    
+    @State private var account: Account?
+    @State private var transferAccount: Account?
+
+    @State private var showingDiscardAlert = false
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             Form {
                 Section {
-                   
+                    // Empty for now
                 } header: {
                     SegmentedPickerHeaderView(transactionType: $transactionType)
                 }
-                
-                Section {
+
+                Section(header: Text("Account Detail")) {
                     if transactionType == .Expense {
-                        Picker("Source Account", selection: $sourceAccount) {
-                            ForEach(accounts) { sourceAccount in
-                                Text(sourceAccount.name).tag(sourceAccount)
+                        Picker("Source", selection: $account) {
+                            ForEach(accounts) { account in
+                                Text(account.name).tag(account as Account?)
                             }
                         }
-                        .pickerStyle(.navigationLink)
-                    } else if transactionType == .Income {
-                        Picker("Destination Account", selection: $sourceAccount) {
-                            ForEach(accounts) { sourceAccount in
-                                Text(sourceAccount.name).tag(sourceAccount)
+                    }
+
+                    if transactionType == .Income {
+                        Picker("Destination", selection: $account) {
+                            ForEach(accounts) { account in
+                                Text(account.name).tag(account as Account?)
                             }
                         }
-                        .pickerStyle(.navigationLink)
-                    } else if transactionType == .Transfer {
-                        Picker("Destination Account", selection: $sourceAccount) {
-                            ForEach(accounts) { sourceAccount in
-                                Text(sourceAccount.name).tag(sourceAccount)
-                            }
-                        }
-                        .pickerStyle(.navigationLink)
-                        Picker("To:", selection: $destinationAccount) {
-                            ForEach(accounts) { destinationAccount in
-                                Text(destinationAccount.name).tag(destinationAccount)
-                            }
-                        }
-                        .pickerStyle(.navigationLink)
                     }
                     
-                    TextField("Notes", text: $notes)
-                }
-                Section {
-                    TextField("Transaction Amount", text: $amount)
-                        .keyboardType(.decimalPad)
-                        .onChange(of: amount) {
-                            if let amount = Double(amount) {
-                                isValidTransactionAmount = true
-                            } else {
-                                isValidTransactionAmount = false
+                    if transactionType == .Transfer {
+                        Picker("Source", selection: $account) {
+                            ForEach(accounts) { account in
+                                Text(account.name).tag(account)
                             }
                         }
-                    
-                    DatePicker("Transaction Date", selection: $transactionDate, displayedComponents: .date)
+                        Picker("Destination", selection: $transferAccount) {
+                            ForEach(accounts) { account in
+                                Text(account.name).tag(account)
+                            }
+                        }
+                    }
                 }
-                
+
+                Section(header: Text("Transaction Information")) {
+                    HStack(spacing: 12) {
+                        icon("dollarsign")
+                        TextField("Transaction Amount", text: $amount)
+                            .keyboardType(.decimalPad)
+                    }
+
+                    HStack(spacing: 12) {
+                        icon("pencil.and.list.clipboard")
+                        TextField("Notes", text: $notes)
+                    }
+
+                    HStack(spacing: 12) {
+                        icon("calendar")
+                        DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
+                    }
+                }
             }
             .navigationTitle("Add New Transaction")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                            let newTransaction = Transaction(notes: notes, amount: Double(amount)!, transactionType: transactionType, transactionDate: transactionDate, sourceAccount: sourceAccount!)
+                        let finalNotes = notes.isEmpty ? "Unassigned" : notes
+                        guard let validAmount = Double(amount), let selectedAccount = account else { return }
+                        
+                        if transactionType == .Expense || transactionType == .Income {
+                            let newTransaction = Transaction(
+                                notes: finalNotes,
+                                amount: validAmount,
+                                transactionType: transactionType,
+                                transactionDate: transactionDate,
+                                account: selectedAccount
+                            )
+
                             modelContext.insert(newTransaction)
                             dismiss()
+                            
+                        } else if transactionType == .Transfer {
+                            let expenseTransaction = Transaction(
+                                notes: finalNotes,
+                                amount: validAmount,
+                                transactionType: transactionType,
+                                transactionDate: transactionDate,
+                                account: account
+                            )
+
+                            modelContext.insert(newTransaction)
+                            dismiss()
+                        }
+                        
                     }
-                    .disabled(!isValidTransactionAmount && isFieldEmpty)
+                    .disabled(!isFormValid)
                 }
+
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        dismiss()
+                        if hasUnsavedChanges {
+                            showingDiscardAlert = true
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
             }
             .onAppear {
-                self.sourceAccount = accounts.first
-                self.destinationAccount = accounts.first
+                self.account = accounts.first
+                self.transferAccount = accounts.first
+            }
+            .confirmationDialog("Unsaved Changes", isPresented: $showingDiscardAlert) {
+                Button("Discard Changes", role: .destructive) {
+                    dismiss()
+                }
             }
         }
+        .interactiveDismissDisabled(hasUnsavedChanges ? true : false)
     }
-    
-    private var isFieldEmpty: Bool {
-        if notes.isEmpty || amount.isEmpty {
-            true
-        } else {
-            false
+
+    // MARK: - Validation & Logic
+
+    private var isFormValid: Bool {
+        !notes.isEmpty &&
+        Double(amount) != nil &&
+        account != nil
+    }
+
+    private var hasUnsavedChanges: Bool {
+        !notes.isEmpty ||
+        !amount.isEmpty
+       
+    }
+
+    private func icon(_ systemName: String) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 6)
+                .frame(width: 28, height: 28)
+                .foregroundStyle(Color.accentColor)
+            Image(systemName: systemName)
+                .font(.subheadline)
+                .foregroundStyle(Color.white)
         }
     }
 }
@@ -117,7 +170,7 @@ struct NewTransactionView: View {
 
 struct SegmentedPickerHeaderView: View {
     @Binding var transactionType: TransactionType
-
+    
     var body: some View {
         HStack {
             Picker("Transaction Type", selection: $transactionType) {

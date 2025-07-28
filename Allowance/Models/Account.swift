@@ -14,25 +14,16 @@ class Account {
     var balance: Double // Assume this is initial balance
     var creationDate: Date
     
-    @Relationship(deleteRule: .cascade, inverse: \Transaction.sourceAccount)
-    var sourceTransactions: [Transaction] = []
-    
-    @Relationship(deleteRule: .cascade, inverse: \Transaction.destinationAccount)
-    var destinationTransactions: [Transaction] = []
+    @Relationship(deleteRule: .cascade, inverse: \Transaction.account)
+    var transactions: [Transaction] = []
     
     init(name: String, balance: Double, date: Date = .now) {
         self.name = name
         self.balance = balance
         self.creationDate = date
     }
-    
-    var totalTransactions: Double {
-        let totalSent = sourceTransactions.reduce(0) { $0 + $1.amount }
-        let totalReceived = destinationTransactions.reduce(0) { $0 + $1.amount }
-        return totalReceived - totalSent
-    }
-    
+
     var netBalance: Double {
-        return balance + totalTransactions
+        return balance
     }
 }

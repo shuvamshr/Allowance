@@ -14,15 +14,14 @@ class Transaction {
     var amount: Double
     var transactionType: TransactionType
     var transactionDate: Date
-    @Relationship var sourceAccount: Account
-    @Relationship var destinationAccount: Account?
-    
-    init(notes: String, amount: Double, transactionType: TransactionType, transactionDate: Date, sourceAccount: Account) {
+    var account: Account
+  
+    init(notes: String, amount: Double, transactionType: TransactionType, transactionDate: Date, account: Account) {
         self.notes = notes
         self.amount = amount
         self.transactionType = transactionType
         self.transactionDate = transactionDate
-        self.sourceAccount = sourceAccount
+        self.account = account
     }
 }
 

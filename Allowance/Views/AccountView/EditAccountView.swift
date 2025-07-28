@@ -46,7 +46,7 @@ struct EditAccountView: View {
                             VStack(alignment: .leading) {
                                 Text(transaction.notes)
                                     .font(.headline)
-                                Text(transaction.sourceAccount.name)
+                                Text(transaction.account.name)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
