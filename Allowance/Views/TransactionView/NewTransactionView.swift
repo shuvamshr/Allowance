@@ -107,11 +107,22 @@ struct NewTransactionView: View {
                                 amount: validAmount,
                                 transactionType: transactionType,
                                 transactionDate: transactionDate,
-                                account: account
+                                account: selectedAccount
                             )
+                            modelContext.insert(expenseTransaction)
+                            if let transferAccount = transferAccount {
+                                let incomeTransaction = Transaction(
+                                    notes: finalNotes,
+                                    amount: validAmount,
+                                    transactionType: transactionType,
+                                    transactionDate: transactionDate,
+                                    account: transferAccount
+                                )
+                                
+                                modelContext.insert(incomeTransaction)
+                                dismiss()
+                            }
 
-                            modelContext.insert(newTransaction)
-                            dismiss()
                         }
                         
                     }
