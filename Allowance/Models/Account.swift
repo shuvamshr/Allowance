@@ -13,7 +13,12 @@ class Account {
     var name: String
     var balance: Double // Assume this is initial balance
     var creationDate: Date
-    var transactions: [Transaction] = []
+    
+    @Relationship(deleteRule: .cascade, inverse: \Transaction.sourceAccount)
+    var sourceTransactions: [Transaction] = []
+    
+    @Relationship(deleteRule: .cascade, inverse: \Transaction.destinationAccount)
+    var destinationTransactions: [Transaction] = []
     
     init(name: String, balance: Double, date: Date = .now) {
         self.name = name
@@ -22,16 +27,9 @@ class Account {
     }
     
     var totalTransactions: Double {
-        transactions.reduce(0.0) { result, transaction in
-            switch transaction.transactionType {
-            case .Income:
-                return result + transaction.amount
-            case .Expense:
-                return result - transaction.amount
-            case .Transfer:
-                return result // Adjust logic if needed
-            }
-        }
+        let totalSent = sourceTransactions.reduce(0) { $0 + $1.amount }
+        let totalReceived = destinationTransactions.reduce(0) { $0 + $1.amount }
+        return totalReceived - totalSent
     }
     
     var netBalance: Double {

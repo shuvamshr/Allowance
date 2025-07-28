@@ -20,9 +20,9 @@ struct TransactionView: View {
                 ForEach(transactions) { transaction in
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(transaction.title)
+                            Text(transaction.notes)
                                 .font(.headline)
-                            Text(transaction.account.name)
+                            Text(transaction.sourceAccount.name)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }

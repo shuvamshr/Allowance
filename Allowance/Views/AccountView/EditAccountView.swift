@@ -30,7 +30,7 @@ struct EditAccountView: View {
                     TextField("Starting Balance", text: $balance)
                         .keyboardType(.decimalPad)
                         .onChange(of: balance) {
-                            if let balance = Double(balance) {
+                            if Double(balance) != nil {
                                 isValidBalance = true
                             } else {
                                 isValidBalance = false
@@ -38,6 +38,33 @@ struct EditAccountView: View {
                         }
                 } header: {
                     Text("Account Information")
+                }
+                
+                Section {
+                    ForEach(account.transactions) { transaction in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(transaction.notes)
+                                    .font(.headline)
+                                Text(transaction.sourceAccount.name)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if transaction.transactionType == .Expense {
+                                Text("- $" + String(transaction.amount))
+                                    .foregroundStyle(Color.red)
+                            } else if transaction.transactionType == .Income {
+                                Text("+ $" + String(transaction.amount))
+                                    .foregroundStyle(Color.green)
+                            } else {
+                                Text("$" + String(transaction.amount))
+                                    .foregroundStyle(Color.primary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Latest Transactions")
                 }
             }
             .navigationTitle("Edit Account")
@@ -58,7 +85,7 @@ struct EditAccountView: View {
                             dismiss()
                         }
                     }
-                    .disabled(!isFieldEmpty && isValidBalance ? false : true)
+                    .disabled(!isFieldEmpty && isValidBalance && hasFieldChanged ? false : true)
                 }
             }
             .onAppear {
@@ -78,5 +105,11 @@ struct EditAccountView: View {
         }
     }
     
-    
+    private var hasFieldChanged: Bool {
+        if name != account.name || Double(balance) != account.balance {
+            true
+        } else {
+            false
+        }
+    }
 }

@@ -24,9 +24,8 @@ struct AccountView: View {
                             Text(account.name)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
-                            Text("$" + String(account.netBalance))
+                            Text("\(account.netBalance, format: .currency(code: "AUD"))")
                                 .font(.title2)
-                            
                         }
                         Spacer()
                         Image(systemName: "australiandollarsign.bank.building.fill")
@@ -61,9 +60,6 @@ struct AccountView: View {
         }
     }
 }
-
-
-
 
 
 
