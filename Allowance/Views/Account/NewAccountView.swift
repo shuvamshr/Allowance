@@ -26,7 +26,7 @@ struct NewAccountView: View {
                     TextField("Starting Balance", text: $balance)
                         .keyboardType(.decimalPad)
                         .onChange(of: balance) {
-                            if let balance = Double(balance) {
+                            if Double(balance) != nil {
                                 isValidBalance = true
                             } else {
                                 isValidBalance = false

@@ -15,8 +15,8 @@ struct NewTransactionView: View {
     @State private var amount: String = ""
     @State private var transactionType: TransactionType = .Expense
     @State private var transactionDate: Date = .now
-    @State private var account: Account?
-    @State private var transferAccount: Account?
+    @State private var sourceAccount: Account?
+    @State private var destinationAccount: Account?
 
     @State private var showingDiscardAlert = false
 
@@ -27,35 +27,34 @@ struct NewTransactionView: View {
         NavigationView {
             Form {
                 Section {
-                    // Empty for now
+                    // Placeholder for segmented control
                 } header: {
                     SegmentedPickerHeaderView(transactionType: $transactionType)
                 }
 
                 Section(header: Text("Account Detail")) {
-                    if transactionType == .Expense {
-                        Picker("Source", selection: $account) {
+                    switch transactionType {
+                    case .Expense:
+                        Picker("Source", selection: $sourceAccount) {
                             ForEach(accounts) { account in
                                 Text(account.name).tag(account as Account?)
                             }
                         }
-                    }
 
-                    if transactionType == .Income {
-                        Picker("Destination", selection: $account) {
+                    case .Income:
+                        Picker("Destination", selection: $destinationAccount) {
                             ForEach(accounts) { account in
                                 Text(account.name).tag(account as Account?)
                             }
                         }
-                    }
-                    
-                    if transactionType == .Transfer {
-                        Picker("Source", selection: $account) {
+
+                    case .Transfer:
+                        Picker("Source", selection: $sourceAccount) {
                             ForEach(accounts) { account in
                                 Text(account.name).tag(account)
                             }
                         }
-                        Picker("Destination", selection: $transferAccount) {
+                        Picker("Destination", selection: $destinationAccount) {
                             ForEach(accounts) { account in
                                 Text(account.name).tag(account)
                             }
@@ -87,44 +86,29 @@ struct NewTransactionView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         let finalNotes = notes.isEmpty ? "Unassigned" : notes
-                        guard let validAmount = Double(amount), let selectedAccount = account else { return }
-                        
-                        if transactionType == .Expense || transactionType == .Income {
-                            let newTransaction = Transaction(
-                                notes: finalNotes,
-                                amount: validAmount,
-                                transactionType: transactionType,
-                                transactionDate: transactionDate,
-                                account: selectedAccount
-                            )
+                        guard let amountValue = Double(amount) else { return }
 
-                            modelContext.insert(newTransaction)
-                            dismiss()
-                            
-                        } else if transactionType == .Transfer {
-                            let expenseTransaction = Transaction(
-                                notes: finalNotes,
-                                amount: validAmount,
-                                transactionType: transactionType,
-                                transactionDate: transactionDate,
-                                account: selectedAccount
-                            )
-                            modelContext.insert(expenseTransaction)
-                            if let transferAccount = transferAccount {
-                                let incomeTransaction = Transaction(
-                                    notes: finalNotes,
-                                    amount: validAmount,
-                                    transactionType: transactionType,
-                                    transactionDate: transactionDate,
-                                    account: transferAccount
-                                )
-                                
-                                modelContext.insert(incomeTransaction)
-                                dismiss()
-                            }
+                        let transaction = Transaction(
+                            notes: finalNotes,
+                            amount: amountValue,
+                            transactionType: transactionType,
+                            transactionDate: transactionDate
+                        )
 
+                        switch transactionType {
+                        case .Expense:
+                            transaction.sourceAccount = sourceAccount
+
+                        case .Income:
+                            transaction.destinationAccount = destinationAccount
+
+                        case .Transfer:
+                            transaction.sourceAccount = sourceAccount
+                            transaction.destinationAccount = destinationAccount
                         }
-                        
+
+                        modelContext.insert(transaction)
+                        dismiss()
                     }
                     .disabled(!isFormValid)
                 }
@@ -140,8 +124,8 @@ struct NewTransactionView: View {
                 }
             }
             .onAppear {
-                self.account = accounts.first
-                self.transferAccount = accounts.first
+                self.sourceAccount = accounts.first
+                self.destinationAccount = accounts.first
             }
             .confirmationDialog("Unsaved Changes", isPresented: $showingDiscardAlert) {
                 Button("Discard Changes", role: .destructive) {
@@ -149,21 +133,26 @@ struct NewTransactionView: View {
                 }
             }
         }
-        .interactiveDismissDisabled(hasUnsavedChanges ? true : false)
+        .interactiveDismissDisabled(hasUnsavedChanges)
     }
 
     // MARK: - Validation & Logic
 
     private var isFormValid: Bool {
-        !notes.isEmpty &&
-        Double(amount) != nil &&
-        account != nil
+        guard Double(amount) != nil else { return false }
+
+        switch transactionType {
+        case .Expense:
+            return sourceAccount != nil
+        case .Income:
+            return destinationAccount != nil
+        case .Transfer:
+            return sourceAccount != nil && destinationAccount != nil && sourceAccount != destinationAccount
+        }
     }
 
     private var hasUnsavedChanges: Bool {
-        !notes.isEmpty ||
-        !amount.isEmpty
-       
+        !notes.isEmpty || !amount.isEmpty
     }
 
     private func icon(_ systemName: String) -> some View {
@@ -173,26 +162,7 @@ struct NewTransactionView: View {
                 .foregroundStyle(Color.accentColor)
             Image(systemName: systemName)
                 .font(.subheadline)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(.white)
         }
-    }
-}
-
-
-struct SegmentedPickerHeaderView: View {
-    @Binding var transactionType: TransactionType
-    
-    var body: some View {
-        HStack {
-            Picker("Transaction Type", selection: $transactionType) {
-                ForEach(TransactionType.allCases) { type in
-                    Text(type.description).tag(type)
-                }
-            }
-            .pickerStyle(.segmented)
-        }
-        .padding(.horizontal, -16) // Remove default header padding
-        .padding(.vertical, 0)
-        .textCase(nil) // Avoid uppercasing on text labels
     }
 }
