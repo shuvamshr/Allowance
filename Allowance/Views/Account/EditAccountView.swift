@@ -58,7 +58,8 @@ struct EditAccountView: View {
                                     notes: "Balance Correction",
                                     amount: abs(delta),
                                     transactionType: delta > 0 ? .Income : .Expense,
-                                    transactionDate: .now
+                                    transactionDate: .now,
+                                    category: Category(name: "Transfer", icon: "arrow.left.arrow.right", color: "brown")
                                 )
                                 if delta > 0 {
                                     transaction.destinationAccount = account

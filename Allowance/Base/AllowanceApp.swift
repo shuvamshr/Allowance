@@ -14,6 +14,6 @@ struct AllowanceApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [Account.self, Transaction.self])
+        .modelContainer(for: [Account.self, Transaction.self, Category.self])
     }
 }

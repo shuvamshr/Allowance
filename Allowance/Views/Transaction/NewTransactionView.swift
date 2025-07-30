@@ -10,11 +10,12 @@ import SwiftUI
 
 struct NewTransactionView: View {
     @Query(sort: \Account.name) private var accounts: [Account]
-
+    
     @State private var notes: String = ""
     @State private var amount: String = ""
     @State private var transactionType: TransactionType = .Expense
     @State private var transactionDate: Date = .now
+    @State private var category: Category = Category(name: "Miscellaneous", icon: "infinity", color: "brown")
     @State private var sourceAccount: Account?
     @State private var destinationAccount: Account?
 
@@ -88,6 +89,25 @@ struct NewTransactionView: View {
                         DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
                     }
                 }
+                
+                Section(header: Text("More Detail")) {
+                    NavigationLink {
+                        
+                    } label: {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .frame(width: 28, height: 28)
+                                    .foregroundStyle(colorFromString(category.color)) // Use color from model
+                                
+                                Image(systemName: category.icon)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white)
+                            }
+                            Text(category.name)
+                        }
+                    }
+                }
             }
             .navigationTitle("Add New Transaction")
             .navigationBarTitleDisplayMode(.inline)
@@ -101,7 +121,8 @@ struct NewTransactionView: View {
                             notes: finalNotes,
                             amount: amountValue,
                             transactionType: transactionType,
-                            transactionDate: transactionDate
+                            transactionDate: transactionDate,
+                            category: category
                         )
 
                         switch transactionType {
@@ -174,4 +195,18 @@ struct NewTransactionView: View {
                 .foregroundStyle(.white)
         }
     }
+    
+    private func colorFromString(_ colorName: String) -> Color {
+        switch colorName.lowercased() {
+        case "blue": return .blue
+        case "green": return .green
+        case "red": return .red
+        case "orange": return .orange
+        case "pink": return .pink
+        case "purple": return .purple
+        default: return .gray // Fallback
+        }
+    }
+    
+    
 }
