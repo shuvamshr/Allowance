@@ -10,6 +10,8 @@ import SwiftUI
 
 struct TransactionListItem: View {
     var transaction: Transaction
+    
+    var showDate: Bool = false
 
     var body: some View {
         HStack(alignment: .top) {
@@ -18,8 +20,10 @@ struct TransactionListItem: View {
                     .font(.headline)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(accountDisplayName)
-                    Text(transaction.transactionDate.formatted(date: .numeric, time: .omitted))
+                    accountNameView
+                    if showDate {
+                        Text(transaction.transactionDate.formatted(date: .numeric, time: .omitted))
+                    }
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -33,6 +37,7 @@ struct TransactionListItem: View {
             }
             .foregroundStyle(iconColor)
         }
+        .padding(.vertical, 2)
     }
 
     private var iconName: String {
@@ -57,16 +62,22 @@ struct TransactionListItem: View {
         }
     }
 
-    private var accountDisplayName: String {
+    @ViewBuilder
+    private var accountNameView: some View {
         switch transaction.transactionType {
-        case .Transfer:
-            let source = transaction.sourceAccount?.name ?? "Unknown"
-            let destination = transaction.destinationAccount?.name ?? "Unknown"
-            return "\(source) > \(destination)"
         case .Expense:
-            return transaction.sourceAccount?.name ?? "Unknown"
+            Text("\(transaction.sourceAccount?.name ?? "Unknown")")
         case .Income:
-            return transaction.destinationAccount?.name ?? "Unknown"
+            Text("\(transaction.destinationAccount?.name ?? "Unknown")")
+        case .Transfer:
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(transaction.sourceAccount?.name ?? "Unknown")")
+                HStack(spacing: 2) {
+                    Image(systemName: "arrow.turn.down.right")
+                    Text("\(transaction.destinationAccount?.name ?? "Unknown")")
+                }
+                
+            }
         }
     }
 }

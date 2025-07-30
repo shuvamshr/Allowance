@@ -32,7 +32,7 @@ struct NewTransactionView: View {
                     SegmentedPickerHeaderView(transactionType: $transactionType)
                 }
 
-                Section(header: Text("Account Detail")) {
+                Section {
                     switch transactionType {
                     case .Expense:
                         Picker("Source", selection: $sourceAccount) {
@@ -58,6 +58,15 @@ struct NewTransactionView: View {
                             ForEach(accounts) { account in
                                 Text(account.name).tag(account)
                             }
+                        }
+                    }
+                } header: {
+                    Text("Account Detail")
+                } footer: {
+                    if transactionType == .Transfer {
+                        if sourceAccount == destinationAccount {
+                            Text("Source and Destination Account cannot be the same.")
+                                .foregroundStyle(.red)
                         }
                     }
                 }

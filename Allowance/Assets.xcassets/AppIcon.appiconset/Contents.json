@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "Allowance.jpg",
+      "filename" : "APPICON.jpg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "Allowance 1.jpg",
+      "filename" : "APPICON 1.jpg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "Allowance 2.jpg",
+      "filename" : "APPICON 2.jpg",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

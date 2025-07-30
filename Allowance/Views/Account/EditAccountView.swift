@@ -8,12 +8,9 @@
 import SwiftData
 import SwiftUI
 
-
-
 struct EditAccountView: View {
     
     @Bindable var account: Account
-    
     @State private var name: String = ""
     @State private var balance: String = ""
     
@@ -21,13 +18,13 @@ struct EditAccountView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var isValidBalance: Bool = true
-    
+
     var body: some View {
         NavigationView {
             Form {
                 Section {
                     TextField("Account Name", text: $name)
-                    TextField("Starting Balance", text: $balance)
+                    TextField("Net Balance", text: $balance)
                         .keyboardType(.decimalPad)
                         .onChange(of: balance) {
                             isValidBalance = Double(balance) != nil
@@ -37,10 +34,9 @@ struct EditAccountView: View {
                 }
                 
                 Section(header: Text("Latest Transactions")) {
-                    ForEach(account.allTransactions.sorted(by: { $0.transactionDate > $1.transactionDate })) { transaction in
-                        // Only show transactions involving this account
+                    ForEach(account.allTransactions) { transaction in
                         if transaction.sourceAccount == account || transaction.destinationAccount == account {
-                            TransactionListItem(transaction: transaction)
+                            TransactionListItem(transaction: transaction, showDate: true)
                         }
                     }
                 }
@@ -53,12 +49,26 @@ struct EditAccountView: View {
                         dismiss()
                     }
                 }
-                
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         if let newBalance = Double(balance) {
+                            let delta = newBalance - account.netBalance
+                            if delta != 0 {
+                                var transaction = Transaction(
+                                    notes: "Balance Correction",
+                                    amount: abs(delta),
+                                    transactionType: delta > 0 ? .Income : .Expense,
+                                    transactionDate: .now
+                                )
+                                if delta > 0 {
+                                    transaction.destinationAccount = account
+                                } else {
+                                    transaction.sourceAccount = account
+                                }
+                                modelContext.insert(transaction)
+                            }
+
                             account.name = name
-                            account.balance = newBalance
                             account.creationDate = .now
                             dismiss()
                         }
@@ -68,21 +78,19 @@ struct EditAccountView: View {
             }
             .onAppear {
                 self.name = account.name
-                self.balance = String(account.balance)
+                self.balance = String(format: "%.2f", account.netBalance)
             }
         }
     }
     
-    // MARK: - Validation
-    
     private var isFieldEmpty: Bool {
         name.isEmpty || balance.isEmpty
     }
-    
+
     private var hasFieldChanged: Bool {
-        name != account.name || Double(balance) != account.balance
+        name != account.name || Double(balance) != account.netBalance
     }
-    
+
     private var canSave: Bool {
         !isFieldEmpty && isValidBalance && hasFieldChanged
     }

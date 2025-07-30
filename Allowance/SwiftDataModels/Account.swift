@@ -11,10 +11,9 @@ import SwiftData
 @Model
 class Account {
     var name: String
-    var balance: Double // Initial balance
+    var balance: Double // Initial balance only
     var creationDate: Date
 
-    // Inverse relationships
     @Relationship(deleteRule: .cascade, inverse: \Transaction.sourceAccount)
     var outgoingTransactions: [Transaction] = []
 
@@ -27,14 +26,12 @@ class Account {
         self.creationDate = date
     }
 
-    /// Computes net balance: subtract if source, add if destination
     var netBalance: Double {
         let outgoingTotal = outgoingTransactions.reduce(0) { $0 + $1.amount }
         let incomingTotal = incomingTransactions.reduce(0) { $0 + $1.amount }
         return balance + incomingTotal - outgoingTotal
     }
 
-    /// All transactions involving this account
     var allTransactions: [Transaction] {
         (incomingTransactions + outgoingTransactions).sorted(by: { $0.transactionDate > $1.transactionDate })
     }

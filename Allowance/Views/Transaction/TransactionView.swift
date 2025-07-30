@@ -54,8 +54,6 @@ struct TransactionView: View {
 }
 
 
-
-
 #Preview {
     TransactionView()
 }
