@@ -54,7 +54,7 @@ struct EditAccountView: View {
                         if let newBalance = Double(balance) {
                             let delta = newBalance - account.netBalance
                             if delta != 0 {
-                                var transaction = Transaction(
+                                let transaction = Transaction(
                                     notes: "Balance Correction",
                                     amount: abs(delta),
                                     transactionType: delta > 0 ? .Income : .Expense,

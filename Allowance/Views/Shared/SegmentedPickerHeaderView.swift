@@ -20,7 +20,7 @@ struct SegmentedPickerHeaderView: View {
             .pickerStyle(.segmented)
         }
         .padding(.horizontal, -16) // Remove default header padding
-        .padding(.vertical, 0)
+        .padding(.bottom, 8)
         .textCase(nil) // Avoid uppercasing on text labels
     }
 }
